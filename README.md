@@ -10,7 +10,7 @@ Each deployment topology is organized into its own sub-folder containing the res
 - [Part 3: Infrastructure Deployment Scenarios](#part-3-infrastructure-deployment-scenarios)
   - [Scenario A: New Resources](#scenario-a-new-resources)
   - [Scenario B: BYO VNet](#scenario-b-byo-vnet)
-  - [Scenario C: BYO VNet and AI Search]()
+  - [Scenario C: BYO VNet and AI Search](#scenario-c-byo-vnet-and-ai-search)
   - [Scenario D: Managed VNet]()
 - [Part 4: Infrastructure Cleanup]()
 
@@ -38,9 +38,7 @@ Navigate into the sub-folder that matches your targeted architecture scenario be
 ### Scenario A: New Resources
 
 > [!NOTE]
-> **Sub-folder**: `/scenario_a`
-
-Provisions a new resource group, new *VNet* and standalone *Storage Account*, *AI Search* and *CosmosDB* resources.
+> Provisions a new resource group, new *VNet* and standalone *Storage Account*, *AI Search* and *CosmosDB* resources.
 
 Update terraform.tfvars:
 
@@ -62,9 +60,7 @@ terraform apply --auto-approve
 
 ### Scenario B: BYO VNet
 > [!NOTE]
-> **Sub-folder**: `/scenario_b`
-
-Deploys the Microsoft Foundry resources and use VNet injection of agent service with an existing Azure virtual network / subnet.
+> Deploys the Microsoft Foundry resources and use VNet injection of agent service with an existing Azure virtual network / subnet.
 
 Update terraform.tfvars:
 
@@ -87,9 +83,7 @@ terraform apply --auto-approve
 ### Scenario C: BYO VNet and AI Search
 
 > [!NOTE]
-> **Sub-folder**: `/scenario_c`
-
-Capacity limitations or design constraints may require the use of resources across differenet Azure regions. This scenario contains Terraform templates for the Foundry project that utilises Azure AI Search located in another Azure region.
+> Capacity limitations or design constraints may require the use of resources across differenet Azure regions. This scenario contains Terraform templates for the Foundry project that utilises Azure AI Search located in another Azure region.
 
 Update terraform.tfvars:
 
@@ -109,3 +103,27 @@ cd scenario_c
 terraform init
 terraform apply --auto-approve
 ```
+
+### Scenario D: Managed VNet
+
+> [!NOTE]
+> Offloads virtual network routing to the platform. Azure implicitly manages the private network boundaries on your behalf.
+
+Update terraform.tfvars:
+
+``` Terraform
+location                 = "eastus2"
+resource_group_name      = "managed-network-rg"
+ai_foundry_public_access = "Disabled"
+storage_public_access    = false
+search_public_access     = false
+```
+
+Deploy the environment with these Terraform commands:
+
+``` PowerShell
+cd scenario_d
+terraform init
+terraform apply --auto-approve
+```
+
