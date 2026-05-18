@@ -12,7 +12,7 @@ Each deployment topology is organized into its own sub-folder containing the res
   - [Scenario B: BYO VNet](#scenario-b-byo-vnet)
   - [Scenario C: BYO VNet and AI Search](#scenario-c-byo-vnet-and-ai-search)
   - [Scenario D: Managed VNet](#scenario-d-managed-vnet)
-- [Part 4: Infrastructure Cleanup]()
+- [Part 4: Infrastructure Cleanup](#part-4-infrastructure-cleanup)
 
 ## Part 1: Prerequisites
 
