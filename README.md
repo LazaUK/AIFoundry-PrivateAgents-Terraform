@@ -6,7 +6,7 @@ Each deployment topology is organized into its own sub-folder containing the res
 
 ## 📑 Table of Contents
 - [Part 1: Prerequisites](#part-1-prerequisites)
-- [Part 2: Environment Setup]()
+- [Part 2: Environment Setup](#part-2-environment-setup)
 - [Part 3: Infrastructure Deployment Scenarios]()
   - [Scenario A: New Resources]()
   - [Scenario B: BYO VNet]()
