@@ -4,6 +4,9 @@ This repo contains Terraform configurations and code templates to deploy Foundry
 
 Each deployment topology is organized into its own sub-folder containing the respective Terraform files.
 
+> [!NOTE]
+> These Terraform templates were adopted from the official Microsoft samples. You can access the original files [here](https://github.com/microsoft-foundry/foundry-samples/tree/main/infrastructure/infrastructure-setup-terraform).
+
 ## 📑 Table of Contents
 - [Part 1: Prerequisites](#part-1-prerequisites)
 - [Part 2: Environment Setup](#part-2-environment-setup)
