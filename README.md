@@ -8,7 +8,7 @@ Each deployment topology is organized into its own sub-folder containing the res
 - [Part 1: Prerequisites](#part-1-prerequisites)
 - [Part 2: Environment Setup](#part-2-environment-setup)
 - [Part 3: Infrastructure Deployment Scenarios](#part-3-infrastructure-deployment-scenarios)
-  - [Scenario A: New Resources]()
+  - [Scenario A: New Resources](#scenario-a-new-resources)
   - [Scenario B: BYO VNet]()
   - [Scenario C: BYO VNet and AI Search]()
   - [Scenario D: Managed VNet]()
@@ -56,6 +56,30 @@ Deploy the environment with these Terraform commands:
 
 ``` PowerShell
 cd scenario_a
+terraform init
+terraform apply --auto-approve
+```
+
+### Scenario B: BYO VNet
+> [!NOTE]
+> **Sub-folder**: `/scenario_b`
+
+Deploys the Microsoft Foundry resources and use VNet injection of agent service with an existing Azure virtual network / subnet.
+
+Update terraform.tfvars:
+
+``` Terraform
+location                             = "eastus2"
+resource_group_name                  = "existing-corporate-rg"
+vnet_address_space                   = ["10.240.0.0/16"]
+agent_subnet_address_prefix          = "10.240.10.0/24"
+private_endpoint_subnet_address_prefix = "10.240.20.0/24"
+```
+
+Deploy the environment with these Terraform commands:
+
+``` PowerShell
+cd scenario_b
 terraform init
 terraform apply --auto-approve
 ```
