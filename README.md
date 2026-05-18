@@ -45,12 +45,8 @@ Navigate into the sub-folder that matches your targeted architecture scenario be
 
 Update terraform.tfvars:
 
-``` Terraform
-location                = "swedencentral"
-ai_services_name_prefix = "fndrysnbox"
-project_name            = "sandbox-project"
-model_name              = "gpt-4.1-mini"
-resource_group_name     = "" # Leave empty to force a new creation
+``` JSON
+<DETAILS TO BE PROVIDED SOON>
 ```
 
 Deploy the environment with these Terraform commands:
@@ -67,12 +63,8 @@ terraform apply --auto-approve
 
 Update terraform.tfvars:
 
-``` Terraform
-location                             = "eastus2"
-resource_group_name                  = "existing-corporate-rg"
-vnet_address_space                   = ["10.240.0.0/16"]
-agent_subnet_address_prefix          = "10.240.10.0/24"
-private_endpoint_subnet_address_prefix = "10.240.20.0/24"
+``` JSON
+<DETAILS TO BE PROVIDED SOON>
 ```
 
 Deploy the environment with these Terraform commands:
@@ -90,13 +82,8 @@ terraform apply --auto-approve
 
 Update terraform.tfvars:
 
-``` Terraform
-location                 = "eastus2"
-resource_group_name      = "secure-enterprise-rg"
-ai_foundry_public_access = "Disabled"
-storage_public_access    = false
-search_public_access     = false
-cosmos_public_access     = false
+``` JSON
+<DETAILS TO BE PROVIDED SOON>
 ```
 
 Deploy the environment with these Terraform commands:
@@ -114,12 +101,8 @@ terraform apply --auto-approve
 
 Update terraform.tfvars:
 
-``` Terraform
-location                 = "eastus2"
-resource_group_name      = "managed-network-rg"
-ai_foundry_public_access = "Disabled"
-storage_public_access    = false
-search_public_access     = false
+``` JSON
+<DETAILS TO BE PROVIDED SOON>
 ```
 
 Deploy the environment with these Terraform commands:
