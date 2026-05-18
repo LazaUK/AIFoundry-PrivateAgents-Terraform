@@ -5,7 +5,7 @@ This repo contains Terraform configurations and code templates to deploy Foundry
 Each deployment topology is organized into its own sub-folder containing the respective Terraform files.
 
 ## 📑 Table of Contents
-- [Part 1: Prerequisites]()
+- [Part 1: Prerequisites](#part-1-prerequisites)
 - [Part 2: Environment Setup]()
 - [Part 3: Infrastructure Deployment Scenarios]()
   - [Scenario A: New Resources]()
@@ -25,7 +25,30 @@ Ensure you have the following tools installed locally:
 
 ### 2.1 Configuration
 
-<TBD>
+<TBU>
 
+## Part 3: Infrastructure Deployment Scenarios
 
+Navigate into the sub-folder that matches your targeted architecture scenario before running Terraform.
+
+### Scenario A: New Resources
+
+> [!NOTE]
+> **Sub-folder**: `/scenario_a`
+
+Provisions a new resource group, new *VNet* and standalone *Storage Account*, *AI Search* and *CosmosDB* resources.
+
+Update terraform.tfvars:
+
+``` Terraform
+<TBU>
+```
+
+Deploy the environment with these Terraform commands:
+
+``` PowerShell
+cd scenario_a
+terraform init
+terraform apply --auto-approve
+```
 
