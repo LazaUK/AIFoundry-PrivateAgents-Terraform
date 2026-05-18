@@ -11,7 +11,7 @@ Each deployment topology is organized into its own sub-folder containing the res
   - [Scenario A: New Resources](#scenario-a-new-resources)
   - [Scenario B: BYO VNet](#scenario-b-byo-vnet)
   - [Scenario C: BYO VNet and AI Search](#scenario-c-byo-vnet-and-ai-search)
-  - [Scenario D: Managed VNet]()
+  - [Scenario D: Managed VNet](#scenario-d-managed-vnet)
 - [Part 4: Infrastructure Cleanup]()
 
 ## Part 1: Prerequisites
@@ -37,7 +37,7 @@ Navigate into the sub-folder that matches your targeted architecture scenario be
 
 ### Scenario A: New Resources
 
-> [!NOTE]
+> [!TIP]
 > Provisions a new resource group, new *VNet* and standalone *Storage Account*, *AI Search* and *CosmosDB* resources.
 
 Update terraform.tfvars:
@@ -59,7 +59,7 @@ terraform apply --auto-approve
 ```
 
 ### Scenario B: BYO VNet
-> [!NOTE]
+> [!TIP]
 > Deploys the Microsoft Foundry resources and use VNet injection of agent service with an existing Azure virtual network / subnet.
 
 Update terraform.tfvars:
@@ -82,7 +82,7 @@ terraform apply --auto-approve
 
 ### Scenario C: BYO VNet and AI Search
 
-> [!NOTE]
+> [!TIP]
 > Capacity limitations or design constraints may require the use of resources across differenet Azure regions. This scenario contains Terraform templates for the Foundry project that utilises Azure AI Search located in another Azure region.
 
 Update terraform.tfvars:
@@ -106,7 +106,7 @@ terraform apply --auto-approve
 
 ### Scenario D: Managed VNet
 
-> [!NOTE]
+> [!TIP]
 > Offloads virtual network routing to the platform. Azure implicitly manages the private network boundaries on your behalf.
 
 Update terraform.tfvars:
@@ -127,3 +127,14 @@ terraform init
 terraform apply --auto-approve
 ```
 
+## Part 4: Infrastructure Cleanup
+
+### 4.1 Clean Teardown
+
+VNet-injected standard agents register hidden service association links (`legionservicelink`) inside your subnets. Trying to drop the infrastructure manually will trigger *InUseSubnetCannotBeDeleted* errors.
+
+To cleanly remove the resources, run the teardown process via Terraform. The setup uses an automated purger context and a *15-minute* (`900s`) cooldown timer to safely disconnect and release network dependencies before deleting the virtual network.
+
+``` Terraform
+terraform destroy --auto-approve
+```
