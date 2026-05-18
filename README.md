@@ -43,10 +43,32 @@ Navigate into the sub-folder that matches your targeted architecture scenario be
 > [!TIP]
 > Provisions a new resource group, new *VNet* and standalone *Storage Account*, *AI Search* and *CosmosDB* resources.
 
-Update terraform.tfvars:
+Update terraform.tfvars with your custom values:
 
-``` JSON
-<DETAILS TO BE PROVIDED SOON>
+``` Terraform
+# ── Core ──────────────────────────────────────────────────────────────────────
+location                = "swedencentral"         # Azure region for all resources
+resource_group_name     = "My_Resource_Group"     # Leave "" to auto-create
+
+# ── AI Foundry ────────────────────────────────────────────────────────────────
+ai_services_name_prefix  = "foundry-pr-swc"       # Suffix with 4 random digits auto-appended
+project_name             = "agent-new-res"
+ai_foundry_public_access = "Disabled"             # "Enabled" | "Disabled"
+
+# ── Model Deployment ──────────────────────────────────────────────────────────
+model_name     = "gpt-4o"
+model_version  = "2024-11-20"
+model_capacity = 10
+
+# ── Networking ────────────────────────────────────────────────────────────────
+vnet_address_space                     = ["10.0.0.0/16"]
+agent_subnet_address_prefix            = "10.0.1.0/24"   # Delegated to Microsoft.App/environments
+private_endpoint_subnet_address_prefix = "10.0.2.0/24"
+
+# ── Dependent Services (all private) ──────────────────────────────────────────
+storage_public_access = false
+search_public_access  = false
+cosmos_public_access  = false
 ```
 
 Deploy the environment with these Terraform commands:
