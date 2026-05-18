@@ -9,7 +9,7 @@ Each deployment topology is organized into its own sub-folder containing the res
 - [Part 2: Environment Setup](#part-2-environment-setup)
 - [Part 3: Infrastructure Deployment Scenarios](#part-3-infrastructure-deployment-scenarios)
   - [Scenario A: New Resources](#scenario-a-new-resources)
-  - [Scenario B: BYO VNet]()
+  - [Scenario B: BYO VNet](#scenario-b-byo-vnet)
   - [Scenario C: BYO VNet and AI Search]()
   - [Scenario D: Managed VNet]()
 - [Part 4: Infrastructure Cleanup]()
@@ -84,3 +84,28 @@ terraform init
 terraform apply --auto-approve
 ```
 
+### Scenario C: BYO VNet and AI Search
+
+> [!NOTE]
+> **Sub-folder**: `/scenario_c`
+
+Capacity limitations or design constraints may require the use of resources across differenet Azure regions. This scenario contains Terraform templates for the Foundry project that utilises Azure AI Search located in another Azure region.
+
+Update terraform.tfvars:
+
+``` Terraform
+location                 = "eastus2"
+resource_group_name      = "secure-enterprise-rg"
+ai_foundry_public_access = "Disabled"
+storage_public_access    = false
+search_public_access     = false
+cosmos_public_access     = false
+```
+
+Deploy the environment with these Terraform commands:
+
+``` PowerShell
+cd scenario_c
+terraform init
+terraform apply --auto-approve
+```
