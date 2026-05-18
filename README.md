@@ -21,3 +21,11 @@ Ensure you have the following tools installed locally:
 - **Azure CLI** (authenticated to your subscription)
 - **Terraform CLI** (v1.5.0+)
 
+## Part 2: Environment Setup
+
+### 2.1 Configuration
+
+<TBD>
+
+
+
