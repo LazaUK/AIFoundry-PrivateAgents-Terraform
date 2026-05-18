@@ -7,13 +7,12 @@ Each deployment topology is organized into its own sub-folder containing the res
 ## 📑 Table of Contents
 - [Part 1: Prerequisites](#part-1-prerequisites)
 - [Part 2: Environment Setup](#part-2-environment-setup)
-- [Part 3: Infrastructure Deployment Scenarios]()
+- [Part 3: Infrastructure Deployment Scenarios](#part-3-infrastructure-deployment-scenarios)
   - [Scenario A: New Resources]()
   - [Scenario B: BYO VNet]()
   - [Scenario C: BYO VNet and AI Search]()
   - [Scenario D: Managed VNet]()
-- [Part 4: Deploy to Foundry]()
-- [Part 5: Testing and Infrastructure Cleanup]()
+- [Part 4: Infrastructure Cleanup]()
 
 ## Part 1: Prerequisites
 
@@ -23,9 +22,14 @@ Ensure you have the following tools installed locally:
 
 ## Part 2: Environment Setup
 
-### 2.1 Configuration
+### 2.1 Authentication
 
-<TBU>
+Before running the Terraform scripts, authenticate your local terminal session to your target Azure subscription:
+
+``` PowerShell
+az login
+az account set --subscription "<YOUR_SUBSCRIPTION_ID_OR_NAME>"
+```
 
 ## Part 3: Infrastructure Deployment Scenarios
 
@@ -41,7 +45,11 @@ Provisions a new resource group, new *VNet* and standalone *Storage Account*, *A
 Update terraform.tfvars:
 
 ``` Terraform
-<TBU>
+location                = "swedencentral"
+ai_services_name_prefix = "fndrysnbox"
+project_name            = "sandbox-project"
+model_name              = "gpt-4.1-mini"
+resource_group_name     = "" # Leave empty to force a new creation
 ```
 
 Deploy the environment with these Terraform commands:
