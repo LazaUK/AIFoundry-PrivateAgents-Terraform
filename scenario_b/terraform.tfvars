@@ -14,6 +14,7 @@ vnet_name                    = "vnet-aifoundry0400"
 vnet_resource_group_name     = "AAA_myTFResourceGroup"
 agent_subnet_name            = "snet-agent-b"
 private_endpoint_subnet_name = "snet-private-endpoints"
+dns_zone_resource_group_name = "AAA_myTFResourceGroup"   # RG where private DNS zones already exist
 
 # ── Model Deployment ──────────────────────────────────────────────────────────
 model_name     = "gpt-4.1"
