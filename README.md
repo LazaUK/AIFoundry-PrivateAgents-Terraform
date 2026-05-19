@@ -102,6 +102,7 @@ vnet_name                    = "my-existing-vnet"
 vnet_resource_group_name     = "my-networking-rg"
 agent_subnet_name            = "snet-agent"
 private_endpoint_subnet_name = "snet-private-endpoints"
+dns_zone_resource_group_name = "my-networking-rg"   # RG where private DNS zones already exist
 
 # ── Model Deployment ──────────────────────────────────────────────────────────
 model_name     = "gpt-4.1"
