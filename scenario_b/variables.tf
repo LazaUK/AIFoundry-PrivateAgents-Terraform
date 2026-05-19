@@ -26,6 +26,11 @@ variable "project_name" {
 # BYO NETWORKING
 # =============================================
 
+variable "dns_zone_resource_group_name" {
+  description = "Resource group containing the existing private DNS zones. Usually the same as resource_group_name when reusing a Scenario A deployment."
+  type        = string
+}
+
 variable "vnet_name" {
   description = "Name of the existing Virtual Network to use"
   type        = string
