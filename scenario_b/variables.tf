@@ -26,11 +26,6 @@ variable "project_name" {
 # BYO NETWORKING
 # =============================================
 
-variable "dns_zone_resource_group_name" {
-  description = "Resource group containing the existing private DNS zones. Usually the same as resource_group_name when reusing a Scenario A deployment."
-  type        = string
-}
-
 variable "vnet_name" {
   description = "Name of the existing Virtual Network to use"
   type        = string
@@ -49,6 +44,17 @@ variable "agent_subnet_name" {
 variable "private_endpoint_subnet_name" {
   description = "Name of the existing subnet used for private endpoints"
   type        = string
+}
+
+variable "dns_zone_resource_group_name" {
+  description = "Resource group containing the existing private DNS zones."
+  type        = string
+}
+
+variable "create_dns_zone_links" {
+  description = "Set to true only if the BYO VNet has no existing links to the private DNS zones. Set to false (default) when reusing a VNet already linked by another scenario deployment."
+  type        = bool
+  default     = false
 }
 
 # =============================================
@@ -70,19 +76,19 @@ variable "ai_foundry_public_access" {
 # =============================================
 
 variable "storage_public_access" {
-  description = "Whether Storage Account should have public access (true/false)"
+  description = "Whether Storage Account should have public access"
   type        = bool
   default     = false
 }
 
 variable "search_public_access" {
-  description = "Whether AI Search should have public access (true/false)"
+  description = "Whether AI Search should have public access"
   type        = bool
   default     = false
 }
 
 variable "cosmos_public_access" {
-  description = "Whether Cosmos DB should have public access (true/false)"
+  description = "Whether Cosmos DB should have public access"
   type        = bool
   default     = false
 }

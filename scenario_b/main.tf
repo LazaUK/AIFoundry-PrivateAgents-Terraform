@@ -87,15 +87,18 @@ data "azurerm_private_dns_zone" "cosmos" {
   resource_group_name = var.dns_zone_resource_group_name
 }
 
+# VNet links are skipped when the DNS zones are already linked to the BYO VNet
+# (e.g. from a prior Scenario A deployment). Set create_dns_zone_links = true
+# only if your existing VNet has no links to these DNS zones yet.
 resource "azurerm_private_dns_zone_virtual_network_link" "all" {
-  for_each = {
+  for_each = var.create_dns_zone_links ? {
     cognitiveservices = data.azurerm_private_dns_zone.cognitiveservices.name
     openai            = data.azurerm_private_dns_zone.openai.name
     services_ai       = data.azurerm_private_dns_zone.services_ai.name
     storage           = data.azurerm_private_dns_zone.storage.name
     search            = data.azurerm_private_dns_zone.search.name
     cosmos            = data.azurerm_private_dns_zone.cosmos.name
-  }
+  } : {}
 
   name                  = "link-${each.key}-${random_string.unique.result}"
   resource_group_name   = var.dns_zone_resource_group_name
@@ -260,7 +263,6 @@ resource "azapi_resource" "ai_foundry" {
         defaultAction = "Deny"
       }
 
-      # === VNet Injection for Standard Agents ===
       networkInjections = [
         {
           scenario                   = "agent"
