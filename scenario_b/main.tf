@@ -54,50 +54,51 @@ data "azurerm_subnet" "private_endpoints" {
 
 ## =============================================
 ## PRIVATE DNS ZONES
+## Look up existing zones — shared with other scenarios in the same RG
 ## =============================================
 
-resource "azurerm_private_dns_zone" "cognitiveservices" {
+data "azurerm_private_dns_zone" "cognitiveservices" {
   name                = "privatelink.cognitiveservices.azure.com"
-  resource_group_name = local.rg_name
+  resource_group_name = var.dns_zone_resource_group_name
 }
 
-resource "azurerm_private_dns_zone" "openai" {
+data "azurerm_private_dns_zone" "openai" {
   name                = "privatelink.openai.azure.com"
-  resource_group_name = local.rg_name
+  resource_group_name = var.dns_zone_resource_group_name
 }
 
-resource "azurerm_private_dns_zone" "services_ai" {
+data "azurerm_private_dns_zone" "services_ai" {
   name                = "privatelink.services.ai.azure.com"
-  resource_group_name = local.rg_name
+  resource_group_name = var.dns_zone_resource_group_name
 }
 
-resource "azurerm_private_dns_zone" "storage" {
+data "azurerm_private_dns_zone" "storage" {
   name                = "privatelink.blob.core.windows.net"
-  resource_group_name = local.rg_name
+  resource_group_name = var.dns_zone_resource_group_name
 }
 
-resource "azurerm_private_dns_zone" "search" {
+data "azurerm_private_dns_zone" "search" {
   name                = "privatelink.search.windows.net"
-  resource_group_name = local.rg_name
+  resource_group_name = var.dns_zone_resource_group_name
 }
 
-resource "azurerm_private_dns_zone" "cosmos" {
+data "azurerm_private_dns_zone" "cosmos" {
   name                = "privatelink.documents.azure.com"
-  resource_group_name = local.rg_name
+  resource_group_name = var.dns_zone_resource_group_name
 }
 
 resource "azurerm_private_dns_zone_virtual_network_link" "all" {
   for_each = {
-    cognitiveservices = azurerm_private_dns_zone.cognitiveservices.name
-    openai            = azurerm_private_dns_zone.openai.name
-    services_ai       = azurerm_private_dns_zone.services_ai.name
-    storage           = azurerm_private_dns_zone.storage.name
-    search            = azurerm_private_dns_zone.search.name
-    cosmos            = azurerm_private_dns_zone.cosmos.name
+    cognitiveservices = data.azurerm_private_dns_zone.cognitiveservices.name
+    openai            = data.azurerm_private_dns_zone.openai.name
+    services_ai       = data.azurerm_private_dns_zone.services_ai.name
+    storage           = data.azurerm_private_dns_zone.storage.name
+    search            = data.azurerm_private_dns_zone.search.name
+    cosmos            = data.azurerm_private_dns_zone.cosmos.name
   }
 
   name                  = "link-${each.key}"
-  resource_group_name   = local.rg_name
+  resource_group_name   = var.dns_zone_resource_group_name
   private_dns_zone_name = each.value
   virtual_network_id    = data.azurerm_virtual_network.vnet.id
 }
@@ -147,7 +148,7 @@ resource "azurerm_private_endpoint" "storage" {
 
   private_dns_zone_group {
     name                 = "storage-dns"
-    private_dns_zone_ids = [azurerm_private_dns_zone.storage.id]
+    private_dns_zone_ids = [data.azurerm_private_dns_zone.storage.id]
   }
 }
 
@@ -182,7 +183,7 @@ resource "azurerm_private_endpoint" "search" {
 
   private_dns_zone_group {
     name                 = "search-dns"
-    private_dns_zone_ids = [azurerm_private_dns_zone.search.id]
+    private_dns_zone_ids = [data.azurerm_private_dns_zone.search.id]
   }
 }
 
@@ -226,7 +227,7 @@ resource "azurerm_private_endpoint" "cosmos" {
 
   private_dns_zone_group {
     name                 = "cosmos-dns"
-    private_dns_zone_ids = [azurerm_private_dns_zone.cosmos.id]
+    private_dns_zone_ids = [data.azurerm_private_dns_zone.cosmos.id]
   }
 }
 
@@ -293,9 +294,9 @@ resource "azurerm_private_endpoint" "ai_foundry" {
   private_dns_zone_group {
     name                 = "ai-foundry-dns"
     private_dns_zone_ids = [
-      azurerm_private_dns_zone.cognitiveservices.id,
-      azurerm_private_dns_zone.services_ai.id,
-      azurerm_private_dns_zone.openai.id
+      data.azurerm_private_dns_zone.cognitiveservices.id,
+      data.azurerm_private_dns_zone.services_ai.id,
+      data.azurerm_private_dns_zone.openai.id
     ]
   }
 }
