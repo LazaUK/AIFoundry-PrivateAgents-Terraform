@@ -97,7 +97,7 @@ resource "azurerm_private_dns_zone_virtual_network_link" "all" {
     cosmos            = data.azurerm_private_dns_zone.cosmos.name
   }
 
-  name                  = "link-${each.key}"
+  name                  = "link-${each.key}-${random_string.unique.result}"
   resource_group_name   = var.dns_zone_resource_group_name
   private_dns_zone_name = each.value
   virtual_network_id    = data.azurerm_virtual_network.vnet.id
