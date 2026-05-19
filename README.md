@@ -85,8 +85,33 @@ terraform apply --auto-approve
 
 Update terraform.tfvars:
 
-``` JSON
-<DETAILS TO BE PROVIDED SOON>
+``` Terraform
+# ── Core ──────────────────────────────────────────────────────────────────────
+location            = "swedencentral"         # Azure region for all new resources
+resource_group_name = "My_Resource_Group"     # Leave "" to auto-create
+
+# ── AI Foundry ────────────────────────────────────────────────────────────────
+ai_services_name_prefix  = "foundry-pr-swc"   # Suffix with 4 random digits auto-appended
+project_name             = "agent-byo-vnet"
+ai_foundry_public_access = "Disabled"         # "Enabled" | "Disabled"
+
+# ── BYO Networking ────────────────────────────────────────────────────────────
+# The VNet and both subnets must already exist before running terraform apply.
+# The agent subnet must be delegated to Microsoft.App/environments.
+vnet_name                    = "my-existing-vnet"
+vnet_resource_group_name     = "my-networking-rg"
+agent_subnet_name            = "snet-agent"
+private_endpoint_subnet_name = "snet-private-endpoints"
+
+# ── Model Deployment ──────────────────────────────────────────────────────────
+model_name     = "gpt-4.1"
+model_version  = "2025-04-14"
+model_capacity = 40
+
+# ── Dependent Services ────────────────────────────────────────────────────────
+storage_public_access = false
+search_public_access  = false
+cosmos_public_access  = false
 ```
 
 Deploy the environment with these Terraform commands:
@@ -96,6 +121,8 @@ cd scenario_b
 terraform init
 terraform apply --auto-approve
 ```
+> [!WARNING]
+> The agent subnet must have a `Microsoft.App/environments` delegation configured before running `terraform apply`.
 
 ### Scenario C: Cross-Region BYO AI Search
 
