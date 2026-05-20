@@ -174,6 +174,10 @@ resource "azurerm_search_service" "search" {
   local_authentication_enabled  = true
   authentication_failure_mode   = "http401WithBearerChallenge"
   public_network_access_enabled = var.search_public_access
+
+  identity {
+    type = "SystemAssigned"
+  }
 }
 
 resource "azurerm_private_endpoint" "search" {
@@ -494,6 +498,53 @@ resource "azurerm_role_assignment" "cosmos_operator" {
   scope                = azurerm_cosmosdb_account.cosmos.id
   role_definition_name = "Cosmos DB Operator"
   principal_id         = azapi_resource.ai_project.output.identity.principalId
+  depends_on           = [time_sleep.wait_for_project_identity]
+}
+
+## =============================================
+## SHARED PRIVATE LINK: SEARCH → FOUNDRY
+## Required for integrated vectorization — allows AI Search to call
+## Foundry's embedding model privately during indexing pipelines.
+## =============================================
+
+# Look up the Search service's managed identity
+data "azurerm_search_service" "search_mi" {
+  name                = azurerm_search_service.search.name
+  resource_group_name = local.rg_name
+
+  depends_on = [azurerm_search_service.search]
+}
+
+
+# Shared private link from Search (UK South) back to Foundry (primary region)
+resource "azurerm_search_shared_private_link_service" "search_to_ai_foundry" {
+  name               = "spl-search-to-foundry"
+  search_service_id  = azurerm_search_service.search.id
+  subresource_name   = "openai_account"
+  target_resource_id = azapi_resource.ai_foundry.id
+  request_message    = "Search to AI Foundry shared private link for integrated vectorization"
+
+  depends_on = [
+    azapi_resource.ai_foundry,
+    azurerm_search_service.search
+  ]
+}
+
+# Search managed identity needs OpenAI Contributor on Foundry to call embedding models
+resource "azurerm_role_assignment" "search_openai_contributor" {
+  scope                = azapi_resource.ai_foundry.id
+  role_definition_name = "Cognitive Services OpenAI Contributor"
+  principal_id         = data.azurerm_search_service.search_mi.identity[0].principal_id
+  description          = "Search MI: OpenAI Contributor on Foundry for integrated vectorization"
+  depends_on           = [time_sleep.wait_for_project_identity]
+}
+
+# Search managed identity needs Cognitive Services Contributor on Foundry
+resource "azurerm_role_assignment" "search_cognitive_contributor" {
+  scope                = azapi_resource.ai_foundry.id
+  role_definition_name = "Cognitive Services Contributor"
+  principal_id         = data.azurerm_search_service.search_mi.identity[0].principal_id
+  description          = "Search MI: Cognitive Services Contributor on Foundry for integrated vectorization"
   depends_on           = [time_sleep.wait_for_project_identity]
 }
 
