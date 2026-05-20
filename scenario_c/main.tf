@@ -516,7 +516,7 @@ data "azurerm_search_service" "search_mi" {
 }
 
 
-# Shared private link from Search (UK South) back to Foundry (primary region)
+# Shared private link from Search (second region) back to Foundry (primary region)
 resource "azurerm_search_shared_private_link_service" "search_to_ai_foundry" {
   name               = "spl-search-to-foundry"
   search_service_id  = azurerm_search_service.search.id
