@@ -14,7 +14,8 @@ Each deployment topology is organized into its own sub-folder containing the res
   - [Scenario A: New Resources](#scenario-a-new-resources)
   - [Scenario B: BYO VNet](#scenario-b-byo-vnet)
   - [Scenario C: Cross-Region BYO AI Search](#scenario-c-cross-region-byo-ai-search)
-  - [Scenario D: Managed VNet](#scenario-d-managed-vnet)
+  - [Scenario D: Multi-Project Foundry with Shared Dependencies](#scenario-d-multi-project-foundry-with-shared-dependencies)
+  - [Scenario E: Managed VNet](#scenario-e-managed-vnet)
 - [Part 4: Infrastructure Cleanup](#part-4-infrastructure-cleanup)
 
 ## Part 1: Prerequisites
@@ -168,7 +169,53 @@ terraform init
 terraform apply --auto-approve
 ```
 
-### Scenario D: Managed VNet
+### Scenario D: Multi-Project Foundry with Shared Dependencies
+
+> [!TIP]
+> Provisions a single AI Foundry account with several Foundry projects. Projects share the same *Storage Account*, *AI Search* and *CosmosDB* dependencies, but get their own connections, capability host and RBAC assignments.
+
+Update terraform.tfvars:
+
+``` Terraform
+# ── Core ──────────────────────────────────────────────────────────────────────
+location            = "swedencentral"
+resource_group_name = ""  # Leave "" to auto-create, or set to existing RG name
+
+# ── AI Foundry ────────────────────────────────────────────────────────────────
+ai_services_name_prefix  = "foundry"          # 4 random digits auto-appended
+ai_foundry_public_access = "Disabled"         # "Enabled" | "Disabled"
+
+# ── Projects ──────────────────────────────────────────────────────────────────
+projects = {
+  team_a = { project_name = "project-team-a" }
+  team_b = { project_name = "project-team-b" }
+}
+
+# ── Networking ────────────────────────────────────────────────────────────────
+vnet_address_space                     = ["10.0.0.0/16"]
+agent_subnet_address_prefix            = "10.0.1.0/24"  # Delegated to Microsoft.App/environments
+private_endpoint_subnet_address_prefix = "10.0.2.0/24"
+
+# ── Model Deployment (shared across all projects) ─────────────────────────────
+model_name     = "gpt-4.1"
+model_version  = "2025-04-14"
+model_capacity = 40
+
+# ── Shared Dependent Services ─────────────────────────────────────────────────
+storage_public_access = false
+search_public_access  = false
+cosmos_public_access  = false
+```
+
+Deploy the environment with these Terraform commands:
+
+``` PowerShell
+cd scenario_d
+terraform init
+terraform apply --auto-approve
+```
+
+### Scenario E: Managed VNet
 
 > [!TIP]
 > Offloads virtual network routing to the platform. Azure implicitly manages the private network boundaries on your behalf.
