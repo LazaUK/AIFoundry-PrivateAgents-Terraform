@@ -1,7 +1,7 @@
 # ── Core ──────────────────────────────────────────────────────────────────────
-location            = "swedencentral"         # Primary region for all resources except AI Search
-resource_group_name = "BBB_myTFResourceGroup" # Leave "" to auto-create, or set to existing RG name
-search_location     = "centralus"             # AI Search in a separate region
+location            = "eastus2"               # Primary region for all resources except AI Search
+resource_group_name = "AAA_myTFResourceGroup" # Leave "" to auto-create, or set to existing RG name
+search_location     = "uksouth"               # AI Search in a separate region
 
 # ── AI Foundry ────────────────────────────────────────────────────────────────
 ai_services_name_prefix  = "foundry"          # 4 random digits auto-appended
