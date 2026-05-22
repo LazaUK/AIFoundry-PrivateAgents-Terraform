@@ -15,7 +15,8 @@ Each deployment topology is organized into its own sub-folder containing the res
   - [Scenario B: BYO VNet](#scenario-b-byo-vnet)
   - [Scenario C: Cross-Region BYO AI Search](#scenario-c-cross-region-byo-ai-search)
   - [Scenario D: Multi-Project Foundry with Shared Dependencies](#scenario-d-multi-project-foundry-with-shared-dependencies)
-  - [Scenario E: Managed VNet](#scenario-e-managed-vnet)
+  - [Scenario E: Multi-Account Foundry with Shared AI Search](#scenario-e-multi-account-foundry-with-shared-ai-search)
+  - [Scenario F: Managed VNet](#scenario-f-managed-vnet)
 - [Part 4: Infrastructure Cleanup](#part-4-infrastructure-cleanup)
 
 ## Part 1: Prerequisites
@@ -48,8 +49,8 @@ Update terraform.tfvars with your custom values:
 
 ``` Terraform
 # ── Core ──────────────────────────────────────────────────────────────────────
-location                = "swedencentral"         # Azure region for all resources
-resource_group_name     = "My_Resource_Group"     # Leave "" to auto-create
+location            = "swedencentral"         # Azure region for all resources
+resource_group_name = "Demo_RG"               # Leave "" to auto-create
 
 # ── AI Foundry ────────────────────────────────────────────────────────────────
 ai_services_name_prefix  = "foundry-pr-swc"       # Suffix with 4 random digits auto-appended
@@ -88,8 +89,8 @@ Update terraform.tfvars:
 
 ``` Terraform
 # ── Core ──────────────────────────────────────────────────────────────────────
-location            = "swedencentral"         # Azure region for all new resources
-resource_group_name = "My_Resource_Group"     # Leave "" to auto-create
+location            = "swedencentral"    # Azure region for all new resources
+resource_group_name = "Demo_RG"          # Leave "" to auto-create
 
 # ── AI Foundry ────────────────────────────────────────────────────────────────
 ai_services_name_prefix  = "foundry-pr-swc"   # Suffix with 4 random digits auto-appended
@@ -137,7 +138,7 @@ Update terraform.tfvars:
 ``` Terraform
 # ── Core ──────────────────────────────────────────────────────────────────────
 location            = "swedencentral"         # Primary region for all resources except AI Search
-resource_group_name = "BBB_myTFResourceGroup" # Leave "" to auto-create, or set to existing RG name
+resource_group_name = "Demo_RG"               # Leave "" to auto-create
 search_location     = "centralus"             # AI Search in a separate region
 
 # ── AI Foundry ────────────────────────────────────────────────────────────────
@@ -179,7 +180,7 @@ Update terraform.tfvars:
 ``` Terraform
 # ── Core ──────────────────────────────────────────────────────────────────────
 location            = "swedencentral"
-resource_group_name = ""  # Leave "" to auto-create, or set to existing RG name
+resource_group_name = "Demo_RG"        # Leave "" to auto-create
 
 # ── AI Foundry ────────────────────────────────────────────────────────────────
 ai_services_name_prefix  = "foundry"          # 4 random digits auto-appended
@@ -215,7 +216,61 @@ terraform init
 terraform apply --auto-approve
 ```
 
-### Scenario E: Managed VNet
+### Scenario E: Multi-Account Foundry with Shared AI Search
+
+> [!TIP]
+> Provisions multiple AI Foundry accounts, each with its own project, Storage Account, CosmosDB, agent subnet and model deployment, while sharing a single AI Search instance.
+
+Update terraform.tfvars:
+
+``` Terraform
+# ── Core ──────────────────────────────────────────────────────────────────────
+location            = "swedencentral"
+resource_group_name = "Demo_RG"        # Leave "" to auto-create
+
+# ── AI Foundry ────────────────────────────────────────────────────────────────
+ai_services_name_prefix  = "foundry"          # Account key appended automatically
+ai_foundry_public_access = "Disabled"         # "Enabled" | "Disabled"
+
+# ── Accounts ──────────────────────────────────────────────────────────────────
+accounts = {
+  account1 = {
+    project_name        = "project-account1"
+    agent_subnet_prefix = "10.0.1.0/24"
+  }
+  account2 = {
+    project_name        = "project-account2"
+    agent_subnet_prefix = "10.0.2.0/24"
+  }
+}
+
+# ── Networking ────────────────────────────────────────────────────────────────
+vnet_address_space                     = ["10.0.0.0/16"]
+private_endpoint_subnet_address_prefix = "10.0.3.0/24"
+
+# ── Model Deployment (one per Foundry account) ────────────────────────────────
+model_name     = "gpt-4.1"
+model_version  = "2025-04-14"
+model_capacity = 40
+
+# ── Public Access ──---────────────────────────────────────────────────────────
+search_public_access = false
+storage_public_access = false
+cosmos_public_access  = false
+```
+
+Deploy the environment with these Terraform commands:
+
+``` PowerShell
+cd scenario_e
+terraform init
+terraform apply --auto-approve
+```
+
+> [!WARNING]
+> File Search with integrated vectorisation requires an additional Shared Private Link from AI Search to each AI Foundry account. Without it, document indexes will be created but vector search may silently fail at query time. This is not covered in this scenario.
+
+### Scenario F: Managed VNet
 
 > [!TIP]
 > Offloads virtual network routing to the platform. Azure implicitly manages the private network boundaries on your behalf.
