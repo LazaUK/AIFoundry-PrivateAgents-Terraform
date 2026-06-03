@@ -514,8 +514,8 @@ resource "time_sleep" "wait_for_rbac" {
 # Added structural purger context below to fix the "InUseSubnetCannotBeDeleted" locking state error upon running terraform destroy
 resource "azapi_resource_action" "purge_ai_foundry" {
   method      = "DELETE"
-  resource_id = "/subscriptions/${data.azurerm_client_config.current.subscription_id}/providers/Microsoft.CognitiveServices/locations/${var.location}/resourceGroups/${local.rg_name}/deletedAccounts/${local.account_name}"
-  type        = "Microsoft.Resources/resourceGroups/deletedAccounts@2021-04-30"
+  resource_id = "/subscriptions/${data.azurerm_client_config.current.subscription_id}/providers/Microsoft.CognitiveServices/locations/${var.location}/deletedAccounts/${local.account_name}"
+  type        = "Microsoft.CognitiveServices/locations/deletedAccounts@2023-05-01"
   when        = "destroy"
 
   depends_on = [time_sleep.purge_ai_foundry_cooldown]
