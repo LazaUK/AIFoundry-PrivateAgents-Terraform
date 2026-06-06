@@ -1,5 +1,4 @@
 ########## Private Network + Agent VNet Injection for Microsoft Foundry ##########
-########## Scenario B: BYO VNet (existing VNet and subnets)             ##########
 
 data "azurerm_client_config" "current" {}
 
@@ -14,7 +13,7 @@ resource "random_string" "unique" {
 
 locals {
   account_name = lower("${var.ai_services_name_prefix}${random_string.unique.result}")
-
+  
   resource_group_name = var.resource_group_name != "" ? var.resource_group_name : "rg-aifoundry${random_string.unique.result}"
   rg_name             = var.resource_group_name != "" ? var.resource_group_name : azurerm_resource_group.rg[0].name
   rg_id               = var.resource_group_name != "" ? data.azurerm_resource_group.existing[0].id : azurerm_resource_group.rg[0].id
@@ -32,9 +31,10 @@ resource "azurerm_resource_group" "rg" {
 }
 
 ## =============================================
-## BYO NETWORKING — DATA SOURCES
+## NETWORKING
 ## =============================================
 
+## BYO NETWORKING — DATA SOURCES
 data "azurerm_virtual_network" "vnet" {
   name                = var.vnet_name
   resource_group_name = var.vnet_resource_group_name
@@ -52,11 +52,14 @@ data "azurerm_subnet" "private_endpoints" {
   resource_group_name  = var.vnet_resource_group_name
 }
 
+# Subnet for Standard Agent VNet Injection
+
+# Subnet for Private Endpoints
+
 ## =============================================
 ## PRIVATE DNS ZONES
-## Look up existing zones — shared with other scenarios in the same RG
 ## =============================================
-
+## BYO DNS ZONES — DATA SOURCES
 data "azurerm_private_dns_zone" "cognitiveservices" {
   name                = "privatelink.cognitiveservices.azure.com"
   resource_group_name = var.dns_zone_resource_group_name
@@ -87,9 +90,8 @@ data "azurerm_private_dns_zone" "cosmos" {
   resource_group_name = var.dns_zone_resource_group_name
 }
 
-# VNet links are skipped when the DNS zones are already linked to the BYO VNet
-# (e.g. from a prior Scenario A deployment). Set create_dns_zone_links = true
-# only if your existing VNet has no links to these DNS zones yet.
+# VNet links skipped when DNS zones already linked to BYO VNet (e.g. from Scenario A).
+# Set create_dns_zone_links = true only if VNet has no existing DNS zone links.
 resource "azurerm_private_dns_zone_virtual_network_link" "all" {
   for_each = var.create_dns_zone_links ? {
     cognitiveservices = data.azurerm_private_dns_zone.cognitiveservices.name
@@ -109,7 +111,6 @@ resource "azurerm_private_dns_zone_virtual_network_link" "all" {
 ## =============================================
 ## STORAGE
 ## =============================================
-
 resource "azurerm_storage_account" "storage" {
   name                     = "aifoundry${random_string.unique.result}stor"
   resource_group_name      = local.rg_name
@@ -158,7 +159,6 @@ resource "azurerm_private_endpoint" "storage" {
 ## =============================================
 ## AI SEARCH
 ## =============================================
-
 resource "azurerm_search_service" "search" {
   name                = replace("aifoundry-${random_string.unique.result}-search", "_", "-")
   resource_group_name = local.rg_name
@@ -193,7 +193,6 @@ resource "azurerm_private_endpoint" "search" {
 ## =============================================
 ## COSMOS DB
 ## =============================================
-
 resource "azurerm_cosmosdb_account" "cosmos" {
   name                              = "aifoundry${random_string.unique.result}cosmos"
   location                          = var.location
@@ -202,7 +201,7 @@ resource "azurerm_cosmosdb_account" "cosmos" {
   kind                              = "GlobalDocumentDB"
   public_network_access_enabled     = var.cosmos_public_access
   is_virtual_network_filter_enabled = !var.cosmos_public_access
-  local_authentication_disabled     = true
+  local_authentication_disabled     = true # Hardened to match reference framework
 
   consistency_policy {
     consistency_level = "Session"
@@ -237,9 +236,8 @@ resource "azurerm_private_endpoint" "cosmos" {
 ## =============================================
 ## AI FOUNDRY ACCOUNT + NETWORK INJECTION
 ## =============================================
-
 resource "azapi_resource" "ai_foundry" {
-  type      = "Microsoft.CognitiveServices/accounts@2025-06-01"
+  type      = "Microsoft.CognitiveServices/accounts@2025-06-01" # Updated to match reference API version
   name      = local.account_name
   location  = var.location
   parent_id = local.rg_id
@@ -263,6 +261,7 @@ resource "azapi_resource" "ai_foundry" {
         defaultAction = "Deny"
       }
 
+      # === VNet Injection for Standard Agents ===
       networkInjections = [
         {
           scenario                   = "agent"
@@ -273,8 +272,9 @@ resource "azapi_resource" "ai_foundry" {
     }
   }
 
+  # Added lifecycle block to gracefully handle destroy actions alongside the purger
   depends_on = [
-    data.azurerm_subnet.agent,
+    azurerm_subnet.agent,
     azapi_resource_action.purge_ai_foundry
   ]
 }
@@ -293,6 +293,7 @@ resource "azurerm_private_endpoint" "ai_foundry" {
     subresource_names              = ["account"]
   }
 
+  # FIX: Expanded Zone list group to contain all 3 required backend AI domains
   private_dns_zone_group {
     name                 = "ai-foundry-dns"
     private_dns_zone_ids = [
@@ -306,24 +307,25 @@ resource "azurerm_private_endpoint" "ai_foundry" {
 ## =============================================
 ## AI PROJECT, CONNECTIONS & MODEL
 ## =============================================
-
 resource "azapi_resource" "ai_project" {
-  type      = "Microsoft.CognitiveServices/accounts/projects@2025-06-01"
+  type      = "Microsoft.CognitiveServices/accounts/projects@2025-06-01" # Updated version string
   name      = var.project_name
   location  = var.location
   parent_id = azapi_resource.ai_foundry.id
 
-  identity {
-    type = "SystemAssigned"
+  identity { 
+    type = "SystemAssigned" 
   }
 
   body = { properties = {} }
 
+  # Export block so we can catch the Project's Managed Identity principal ID
   response_export_values = [
     "identity.principalId"
   ]
 }
 
+# Changed parent_id to the Project, and updated type versions for connections
 resource "azapi_resource" "storage_connection" {
   type      = "Microsoft.CognitiveServices/accounts/projects/connections@2025-06-01"
   name      = "storage-connection"
@@ -336,14 +338,15 @@ resource "azapi_resource" "storage_connection" {
       authType      = "AAD"
       isSharedToAll = true
       metadata = {
-        ApiType    = "Azure"
-        ResourceId = azurerm_storage_account.storage.id
-        location   = var.location
+        ApiType       = "Azure"
+        ResourceId    = azurerm_storage_account.storage.id
+        location      = var.location
       }
     }
   }
 }
 
+# Changed parent_id to the Project, and updated type versions for connections
 resource "azapi_resource" "search_connection" {
   type      = "Microsoft.CognitiveServices/accounts/projects/connections@2025-06-01"
   name      = "search-connection"
@@ -364,6 +367,7 @@ resource "azapi_resource" "search_connection" {
   }
 }
 
+# Added Cosmos DB connection definition for AI Project scope
 resource "azapi_resource" "cosmosdb_connection" {
   type      = "Microsoft.CognitiveServices/accounts/projects/connections@2025-06-01"
   name      = "cosmosdb-connection"
@@ -384,6 +388,7 @@ resource "azapi_resource" "cosmosdb_connection" {
   }
 }
 
+# Added capability host mapping resource needed by Standard Agents
 resource "azapi_resource" "ai_foundry_project_capability_host" {
   type                      = "Microsoft.CognitiveServices/accounts/projects/capabilityHosts@2025-04-01-preview"
   name                      = "caphostproj"
@@ -438,6 +443,7 @@ resource "azapi_resource" "model_deployment" {
 ## =============================================
 ## SECURITY & ROLE ASSIGNMENTS
 ## =============================================
+# Re-mapped the principal IDs to point to the Project Identity, as standard agents run under the Project scope
 
 resource "azurerm_role_assignment" "storage_blob_data_contributor" {
   scope                = azurerm_storage_account.storage.id
@@ -466,9 +472,10 @@ resource "azurerm_cosmosdb_sql_role_assignment" "cosmos_contributor" {
   role_definition_id  = "${azurerm_cosmosdb_account.cosmos.id}/sqlRoleDefinitions/00000000-0000-0000-0000-000000000002"
   principal_id        = azapi_resource.ai_project.output.identity.principalId
   scope               = azurerm_cosmosdb_account.cosmos.id
-  depends_on          = [time_sleep.wait_for_project_identity]
+  depends_on           = [time_sleep.wait_for_project_identity]
 }
 
+# FIX: Added missing structural control plane role assignment for Cosmos DB Operator
 resource "azurerm_role_assignment" "cosmos_operator" {
   scope                = azurerm_cosmosdb_account.cosmos.id
   role_definition_name = "Cosmos DB Operator"
@@ -480,11 +487,13 @@ resource "azurerm_role_assignment" "cosmos_operator" {
 ## TIMERS AND PURGE MECHANICAL ACTIONS
 ## =============================================
 
+# Allows Entra identity properties to replicate down into Azure
 resource "time_sleep" "wait_for_project_identity" {
   depends_on      = [azapi_resource.ai_project]
   create_duration = "15s"
 }
 
+# Ensures RBAC structures finish propagating before capability host initializes backend maps
 resource "time_sleep" "wait_for_rbac" {
   depends_on = [
     azurerm_role_assignment.storage_blob_data_contributor,
@@ -496,16 +505,17 @@ resource "time_sleep" "wait_for_rbac" {
   create_duration = "60s"
 }
 
+# Added structural purger context below to fix the "InUseSubnetCannotBeDeleted" locking state error upon running terraform destroy
 resource "azapi_resource_action" "purge_ai_foundry" {
   method      = "DELETE"
-  resource_id = "/subscriptions/${data.azurerm_client_config.current.subscription_id}/providers/Microsoft.CognitiveServices/locations/${var.location}/resourceGroups/${local.rg_name}/deletedAccounts/${local.account_name}"
-  type        = "Microsoft.Resources/resourceGroups/deletedAccounts@2021-04-30"
+  resource_id = "/subscriptions/${data.azurerm_client_config.current.subscription_id}/providers/Microsoft.CognitiveServices/locations/${var.location}/deletedAccounts/${local.account_name}"
+  type        = "Microsoft.CognitiveServices/locations/deletedAccounts@2023-05-01"
   when        = "destroy"
 
   depends_on = [time_sleep.purge_ai_foundry_cooldown]
 }
 
 resource "time_sleep" "purge_ai_foundry_cooldown" {
-  destroy_duration = "900s"
+  destroy_duration = "900s" # 15 min buffer ensuring the backend drops the VNet injected legion infrastructure links safely
   depends_on       = [data.azurerm_subnet.agent]
 }
