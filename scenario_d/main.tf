@@ -352,7 +352,7 @@ resource "time_sleep" "wait_for_project_identity" {
 }
 
 ## =============================================
-## CONNECTIONS (ONE SET PER PROJECT)
+## CONNECTIONS (ONE SET PER PROJECT, UNIQUE NAMES)
 ## =============================================
 
 resource "azapi_resource" "storage_connection" {
@@ -541,8 +541,8 @@ resource "time_sleep" "wait_for_rbac" {
 
 resource "azapi_resource_action" "purge_ai_foundry" {
   method      = "DELETE"
-  resource_id = "/subscriptions/${data.azurerm_client_config.current.subscription_id}/providers/Microsoft.CognitiveServices/locations/${var.location}/resourceGroups/${local.rg_name}/deletedAccounts/${local.account_name}"
-  type        = "Microsoft.Resources/resourceGroups/deletedAccounts@2021-04-30"
+  resource_id = "/subscriptions/${data.azurerm_client_config.current.subscription_id}/providers/Microsoft.CognitiveServices/locations/${var.location}/deletedAccounts/${local.account_name}"
+  type        = "Microsoft.CognitiveServices/locations/deletedAccounts@2023-05-01"
   when        = "destroy"
 
   depends_on = [time_sleep.purge_ai_foundry_cooldown]
